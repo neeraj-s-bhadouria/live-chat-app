@@ -4,6 +4,7 @@ import cors from "cors";
 import connectDB from "./config/db.js";
 import { API, USER } from "./constants.js";
 import userRoutes from "./routes/userRoutes.js";
+import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 
 const app = express();
 dotenv.config();
@@ -12,6 +13,8 @@ app.use(express.json());
 connectDB();
 
 app.use(API + USER, userRoutes);
+app.use(notFound);
+app.use(errorHandler);
 
 const PORT = process.env.SERVER_PORT || 9211;
 
