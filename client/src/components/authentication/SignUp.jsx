@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, FormControl, FormLabel, Input, InputGroup, InputRightElement, VStack } from '@chakra-ui/react';
+import { Button, FormControl, FormLabel, Input, InputGroup, InputRightElement, VStack, useToast } from '@chakra-ui/react';
 
 const SignUp = () => {
     const [name, setName] = useState();
@@ -8,9 +8,56 @@ const SignUp = () => {
     const [confirmPassword, setConfirmPassword] = useState();
     const [pic, setPic] = useState();
     const [show, setShow] = useState();
+    const [loading, setLoading] = useState(false);
+    const toast = useToast();
+
     const handleClick = () => setShow(!show);
 
-    const postDetails = (pic) => {}
+    const postDetails = (pic) => {
+        console.log('pic = '+pic);
+        console.log('pic type = '+pic.type);
+        setLoading(true);
+        if(pic === undefined){
+            toast({
+                title: "please select an Image!",
+                status: "warning",
+                duration: 5000,
+                isClosable: true,
+                position: 'bottom',
+            });
+            return;
+        }
+
+        if(pic.type==="image/jpeg" || pic.type==="image/png"){
+            const data = new FormData();
+            data.append("file", pic);
+            data.append("upload_preset", "bakbak");
+            data.append("cloud_name", "de6nevd4p");
+            fetch("https://api.cloudinary.com/v1_1/de6nevd4p/image/upload", {
+                method: "post",
+                body: data,
+            }).then((res)=> res.json())
+            .then(data => {
+                setPic(data.url.toString());
+                console.log(data.url.toString());
+                setLoading(false);
+            })
+            .catch((err)=> {
+                console.log(err);
+                setLoading(false);
+            });
+        } else {
+            toast({
+                title: "Please select a valid image of jpeg/png",
+                status: 'warning',
+                duration: 5000,
+                isClosable: true,
+                position: "bottom",
+            });
+            setLoading(false);
+            return;
+        }
+    }
     const submitHandler = () => {}
 
   return (
@@ -65,7 +112,7 @@ const SignUp = () => {
                 type='file'
                 p={1.5}
                 accept='image/*'
-                onChange={(e) => postDetails(e.target.value[0])}
+                onChange={(e) => postDetails(e.target.files[0])}
             />
         </FormControl>
         <Button
@@ -73,6 +120,7 @@ const SignUp = () => {
             width='100%'
             style={{ marginTop: 15 }}
             onClick={submitHandler}
+            isLoading={loading}
         >
             Sign Up
         </Button>
