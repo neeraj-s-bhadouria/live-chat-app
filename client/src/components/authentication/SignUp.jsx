@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Button, FormControl, FormLabel, Input, InputGroup, InputRightElement, VStack, useToast } from '@chakra-ui/react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const SignUp = () => {
     const [name, setName] = useState();
@@ -7,11 +9,15 @@ const SignUp = () => {
     const [password, setPassword] = useState();
     const [confirmPassword, setConfirmPassword] = useState();
     const [pic, setPic] = useState();
-    const [show, setShow] = useState();
+    const [showPassword, setShowPassword] = useState();
+    const [showConfirmPassword, setShowConfirmPassword] = useState();
     const [loading, setLoading] = useState(false);
     const toast = useToast();
+    const navigate = useNavigate();
 
-    const handleClick = () => setShow(!show);
+    //toggle show/hide button 
+    const handleShowPasswordClick = () => setShowPassword(!showPassword);
+    const handleShowConfirmPasswordClick = () => setShowConfirmPassword(!showConfirmPassword);
 
     const postDetails = (pic) => {
         console.log('pic = '+pic);
@@ -58,7 +64,63 @@ const SignUp = () => {
             return;
         }
     }
-    const submitHandler = () => {}
+    const submitHandler = async() => {
+        setLoading(true);
+        //validate if the user has passed all the required data in the request
+        if(!name || !email || !password || !confirmPassword){
+            toast({
+                title: "Please provide all the mandatory fields!",
+                status: 'error',
+                duration: 5000,
+                isClosable: true,
+                position: 'bottom',
+            });
+            setLoading(false);
+            return;
+        } else if(password !== confirmPassword){
+            toast({
+                title: 'Password and confirm password do not match',
+                status: 'error',
+                duration: 5000,
+                isClosable: true,
+                position: 'bottom',
+            });
+            setLoading(false);
+            return;
+        }
+
+        //process registration
+        try {
+            const config = {
+                headers: {
+                    "Content-type": "application/json",
+                },
+            }
+            const { data } = await axios.post("/api/user", {name, email, password, pic}, config);
+            toast({
+                title: 'Registration Successful',
+                status: 'success',
+                duration: 5000,
+                isClosable: true,
+                position: 'bottom'
+            });
+            
+            localStorage.setItem("userInfo", JSON.stringify(data));
+
+            setLoading(false);
+            navigate("/chat");
+        } catch (error) {
+            toast({
+                title: "Error Occured",
+                description: error.response.data.message,
+                status: 'error',
+                duration: 5000,
+                isClosable: 'true',
+                position: 'bottom'
+            });
+            setLoading(false);
+        }
+    }
 
   return (
     <VStack spacing="5px">
@@ -80,13 +142,13 @@ const SignUp = () => {
             <FormLabel>Password</FormLabel>
             <InputGroup>
                 <Input 
-                    type={show? 'text' : 'password'}
+                    type={showPassword? 'text' : 'password'}
                     placeholder='Enter your password'
                     onChange={(e) => setPassword(e.target.value)}
                 />
                 <InputRightElement width="4.5rem">
-                    <Button h='1.75rem' size='sm' onClick={handleClick}>
-                        {show ? "Hide" : "Show"}
+                    <Button h='1.75rem' size='sm' onClick={handleShowPasswordClick}>
+                        {showPassword ? "Hide" : "Show"}
                     </Button>
                 </InputRightElement>
             </InputGroup>
@@ -95,13 +157,13 @@ const SignUp = () => {
             <FormLabel>Confirm Password</FormLabel>
             <InputGroup>
                 <Input 
-                    type={show? 'text' : 'password'}
+                    type={showConfirmPassword? 'text' : 'password'}
                     placeholder='Enter your password again'
                     onChange={(e) => setConfirmPassword(e.target.value)}
                 />
                 <InputRightElement width="4.5rem">
-                    <Button h='1.75rem' size='sm' onClick={handleClick}>
-                        {show ? "Hide" : "Show"}
+                    <Button h='1.75rem' size='sm' onClick={handleShowConfirmPasswordClick}>
+                        {showConfirmPassword ? "Hide" : "Show"}
                     </Button>
                 </InputRightElement>
             </InputGroup>

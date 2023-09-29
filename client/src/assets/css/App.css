@@ -8,3 +8,8 @@
     display: flex;
     color: white;
 }
+
+input{
+    color: black;
+    background-color: white !important;
+}

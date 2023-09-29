@@ -3,18 +3,16 @@ import { User } from "../models/userModel.js";
 import bcrypt from "bcrypt";
 import { generateToken } from "../config/generateToken.js";
 
+//  POST -> /api/user
 const registerUser = asyncHandler(async (req, res) => {
   console.log("Inside register user....");
-  console.log("yha a gya");
   console.log(req.body);
   const { name, email, password, pic } = req.body;
-  console.log("data le liya");
   if (!name || !email || !password) {
     res.status(400);
     throw new Error("Please enter all the mandatory fields!");
   }
   const userExist = await User.findOne({ email });
-  console.log("userExist - " + userExist);
   if (userExist) {
     res.status(409);
     throw new Error("Email already exists.");
@@ -27,9 +25,7 @@ const registerUser = asyncHandler(async (req, res) => {
     password: passwordHash,
     pic,
   });
-  console.log("user ko daal rhe hai");
   const user = await newUser.save();
-  console.log("user - " + user);
   if (user) {
     res.status(201).json({
       mesaage: "Registration successfull",
@@ -49,6 +45,7 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 });
 
+//  POST -> /api/user/login
 const loginUser = asyncHandler(async (req, res) => {
   console.log("Inside login user function");
   const { email, password } = req.body;
@@ -75,6 +72,20 @@ const loginUser = asyncHandler(async (req, res) => {
   });
 });
 
-const getAllUsers = async (req, res) => {};
+//  GET -> /api/user?search=:parameter
+const getAllUsers = asyncHandler(async (req, res) => {
+  console.log("inside getAllUsers function " + req.query.search);
+  const keyword = req.query.search
+    ? {
+        $or: [
+          { name: { $regex: req.query.search, $options: "i" } },
+          { email: { $regex: req.query.search, $options: "i" } },
+        ],
+      }
+    : {};
+
+  const users = await User.find(keyword).find({ _id: { $ne: req.user._id } });
+  res.send(users);
+});
 
 export { registerUser, loginUser, getAllUsers };
