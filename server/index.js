@@ -2,8 +2,9 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import connectDB from "./config/db.js";
-import { API, USER } from "./constants.js";
+import { API, USER, CHAT } from "./constants.js";
 import userRoutes from "./routes/userRoutes.js";
+import chatRoutes from "./routes/chatRoutes.js";
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 
 const app = express();
@@ -13,6 +14,7 @@ app.use(express.json());
 connectDB();
 
 app.use(API + USER, userRoutes);
+app.use(API + CHAT, chatRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
